@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./resources/windbag.svg" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./main_style.css" />
+    <title>AERODROMES | HUNMETDATAAPI</title>
+  </head>
+  <body>
+    <dialog class="error-modal basic-element-design">
+      <form method="dialog">
+        <button>
+          <img src="./resources/close_window.svg" alt="Üzenet bezárása" />
+        </button>
+        <div class="message-part">
+          <img src="./resources/alert.svg" alt="Hiba" class="modal-icon" />
+          <div class="message-container"></div>
+          <img src="./resources/alert.svg" alt="Hiba" class="modal-icon" />
+        </div>
+      </form>
+    </dialog>
+    <dialog class="warning-modal basic-element-design">
+      <form method="dialog">
+        <button>
+          <img src="./resources/close_window.svg" alt="Üzenet bezárása" />
+        </button>
+        <div class="message-part">
+          <img
+            src="./resources/warning.svg"
+            alt="Figyelmeztetés"
+            class="modal-icon"
+          />
+          <div class="message-container"></div>
+          <img
+            src="./resources/warning.svg"
+            alt="Figyelmeztetés"
+            class="modal-icon"
+          />
+        </div>
+      </form>
+    </dialog>
+    <div class="loader-overlay">
+      <div class="loader"></div>
+    </div>
+    <header>
+      <div class="logo basic-element-design"></div>
+      <nav class="basic-element-design">
+        <ul class="menu">
+          <li>
+            <a href="" class="basic-button menu-ref actual" data-menu="map"
+              >MAP</a
+            >
+          </li>
+          <li>
+            <a href="" class="basic-button menu-ref" data-menu="chart">CHART</a>
+          </li>
+        </ul>
+      </nav>
+      <div class="watch-data basic-element-design"></div>
+      <div class="aerodrome-selector basic-element-design">
+        <select name="aerodrome-select" id="aerodrome-select"></select>
+      </div>
+    </header>
+    <main>
+      <section class="map actualsection">
+        <div id="map"></div>
+      </section>
+      <section class="chart basic-element-design">
+        <div class="chart-menu">
+          <a
+            class="chart-select basic-button submenu actual"
+            title="Airpressure"
+            data-menu="qfeqnh"
+            >QFE/QNH</a
+          >
+          <a
+            class="chart-select basic-button submenu"
+            title="Horizontal visibility"
+            data-menu="hzvis"
+            >HZ VIS</a
+          >
+          <a
+            class="chart-select basic-button submenu"
+            title="Relative humidity"
+            data-menu="relhum"
+            >REL HUM</a
+          >
+          <a
+            class="chart-select basic-button submenu"
+            title="Wind"
+            data-menu="wind"
+            >WIND</a
+          >
+          <a
+            class="chart-select basic-button submenu"
+            title="Temperature"
+            data-menu="temp"
+            >TEMP</a
+          >
+          <a
+            class="chart-select basic-button submenu"
+            title="Soil temperature"
+            data-menu="stemp"
+            >STEMP</a
+          >
+        </div>
+        <div class="chart-container">
+          <canvas id="metChart"></canvas>
+        </div>
+      </section>
+    </main>
+    <div class="aside-container attached-active">
+      <aside class="data-left basic-element-design"></aside>
+      <aside class="data-right basic-element-design"></aside>
+    </div>
+    <footer class="basic-element-design">
+      <p>© 2026 - Nógrádi József |</p>
+      <p>Minden jog fenntartva</p>
+    </footer>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./main.js" type="module"></script>
+  </body>
+</html>

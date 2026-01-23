@@ -1,0 +1,506 @@
+/* ----------------------------- */
+/* Betűtípus import              */
+/* ----------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+/* ----------------------------- */
+/* A változók beállítása         */
+/* ----------------------------- */
+:root {
+  /* Színek: */
+  --color-main: rgba(43, 69, 112, 0.8);
+  --color-main-faded: rgba(43, 69, 112, 0.3);
+  --color-marker: rgba(250, 130, 76, 1);
+
+  /* Dimenziók: */
+  --body-min-width: 310px;
+  --body-min-height: 500px;
+  --loader-width: clamp(200px, 40vw, 500px);
+  --loader-height: clamp(300px, 80vh, 700px);
+  --header-height: 3rem;
+  --submenu-height: 2rem;
+  --footer-height: 2.5rem;
+
+  /*Betűméret: */
+  --root-font-size: 20px;
+
+  /* Időtartamok: */
+  --transition-duration: 0.3s;
+}
+
+/* ----------------------------- */
+/* A RESET beállítása            */
+/* ----------------------------- */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  user-select: none;
+  text-decoration: none;
+  list-style: none;
+}
+
+/* ----------------------------- */
+/* A HTML és alap beállítások    */
+/* ----------------------------- */
+* {
+  font-family: "Merriweather Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-size: var(--root-font-size);
+}
+body {
+  min-width: var(--body-min-width);
+  min-height: var(--body-min-height);
+  background-image: url("./resources/weather_station.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* ---------------------------------- */
+/* Az általános stílusok beállítása   */
+/* ---------------------------------- */
+.basic-button {
+  border: none;
+  background: transparent;
+  color: var(--color-main-faded);
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 3px var(--color-main));
+  cursor: pointer;
+  transition: var(--transition-duration);
+  &:hover,
+  &.actual {
+    color: var(--color-main);
+    animation: flashing 2s linear infinite;
+  }
+  &.submenu {
+    font-size: 0.8rem;
+  }
+}
+.basic-element-design {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: transparent;
+  border: 1px solid var(--color-main);
+  border-radius: 0.3rem;
+  box-shadow: inset 0 0 11px 3px var(--color-main);
+  padding: 0.5rem;
+}
+p {
+  font-size: 1rem;
+  color: var(--color-main);
+}
+:modal {
+  container-type: inline-size;
+  container-name: modal-container;
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  width: 80vw;
+  transform: translate(-50%, 0);
+  color: var(--color-main);
+  &::backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  & form {
+    display: flex;
+    flex-direction: column;
+    margin-right: 5cqw;
+    & .message-part {
+      display: grid;
+      grid-template-columns: 1fr 11fr 1fr;
+    }
+    & .message-container p {
+      font-size: 3.3cqw;
+      text-align: center;
+      white-space: pre-line;
+    }
+    & > button {
+      width: 1.5rem;
+      height: 1.5rem;
+      background: transparent;
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding-block: 0;
+      padding-inline: 0;
+      margin: 0.5rem;
+      border: none;
+      outline: none;
+      cursor: pointer;
+    }
+    & .modal-icon {
+      width: 100%;
+    }
+  }
+}
+select,
+::picker(select) {
+  appearance: base-select;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.2rem;
+  background: var(--color-main-faded);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-main);
+  border: none;
+  outline: none;
+  &:hover {
+    color: var(--color-marker);
+  }
+  &:focus {
+    color: var(--color-marker);
+  }
+}
+select {
+  width: stretch;
+  &::picker-icon {
+    transition: 0.4s rotate;
+  }
+  &:open::picker-icon {
+    rotate: 180deg;
+  }
+  & option:hover,
+  & option:focus {
+    color: var(--color-marker);
+    border: none;
+    outline: none;
+  }
+}
+img {
+  width: 100%;
+}
+& .windbag-stripe-1,
+& .windbag-stripe-2 {
+  transform: translateY(20px);
+  animation: windbagfly 2s linear infinite;
+}
+& .windbag-stripe-2 {
+  animation-delay: 0.5s;
+}
+
+@keyframes windbagfly {
+  0%,
+  100% {
+    transform: translateY(20px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ----------------------------- */
+/* A LOADER elem beállítása      */
+/* ----------------------------- */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  &.loader-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  & .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: calc(50vh - var(--loader-height) / 2);
+    left: calc(50vw - var(--loader-width) / 2);
+    width: var(--loader-width);
+    height: var(--loader-height);
+    z-index: 1000;
+    & .loading-text {
+      font-size: 3rem;
+      text-align: center;
+    }
+  }
+}
+
+/* ----------------------------- */
+/* A HEADER elem beállítása      */
+/* ----------------------------- */
+header {
+  display: grid;
+  grid-template-columns: var(--header-height) auto;
+  gap: 0.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: stretch;
+  min-width: calc(var(--body-min-width) - 1rem);
+  margin: 0.5rem;
+  z-index: 100;
+  & .logo,
+  & .watch-data {
+    height: var(--header-height);
+  }
+  & .watch-data {
+    cursor: pointer;
+  }
+  & .aerodrome-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: var(--header-height);
+  }
+  & nav {
+    width: stretch;
+    height: var(--header-height);
+    & .menu {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+  }
+}
+
+@keyframes flashing {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px var(--color-main));
+  }
+  50% {
+    filter: none;
+  }
+}
+
+/* ----------------------------- */
+/* A MAIN elemeinek beállítása   */
+/* ----------------------------- */
+main {
+  & section {
+    display: none;
+    color: var(--color-main);
+    position: relative;
+    z-index: 20;
+    &.actualsection {
+      display: block;
+    }
+    & #map {
+      height: clamp(var(--body-min-height), 100dvh, 100dvh);
+      & .leaflet-marker-icon {
+        background: transparent;
+        border: none;
+      }
+      & .leaflet-container a.leaflet-popup-close-button {
+        color: var(--color-main);
+        margin-top: 0.25rem;
+        margin-right: 0.25rem;
+      }
+      & .leaflet-popup-tip-container {
+        display: none;
+      }
+      & .leaflet-popup-content-wrapper {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+        & .leaflet-popup-content p {
+          margin: 0;
+        }
+      }
+      & .map-label {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        column-gap: 0.25rem;
+        color: var(--color-main);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        & .open-data {
+          cursor: pointer;
+        }
+      }
+    }
+    &.chart {
+      margin: 0.5rem;
+      margin-top: calc(var(--header-height) * 2 + 1.5rem);
+      margin-bottom: calc(var(--footer-height) + 2rem);
+      height: calc(
+        100dvh - var(--header-height) * 2 - 1.5rem - var(--footer-height) - 2rem
+      );
+      & .chart-menu {
+        display: flex;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+        column-gap: 0.8rem;
+        height: var(--submenu-height);
+      }
+      & .chart-container {
+        width: 100%;
+        height: calc(100% - var(--submenu-height));
+        & #metChart {
+          height: 100%;
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------- */
+/* Az ASIDE elemeinek beállítása */
+/* ----------------------------- */
+.aside-container {
+  display: none;
+  justify-content: space-between;
+  position: absolute;
+  top: calc(var(--header-height) * 2 + 1rem);
+  width: calc(100vw - 1rem);
+  min-width: calc(var(--body-min-width) - 1rem);
+  height: calc(
+    100dvh - var(--header-height) * 2 - 1.5rem - var(--footer-height) - 2rem
+  );
+  overflow: hidden;
+  margin: 0.5rem;
+  &.attached-active {
+    display: flex;
+  }
+  & aside {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    align-items: center;
+    column-gap: 0.2rem;
+    position: relative;
+    left: calc(max(7rem, 30vw) * (-1));
+    width: clamp(7rem, 30vw, 14rem);
+    transition: 0.5s linear;
+    z-index: 1000;
+    &.opened {
+      left: 0;
+    }
+    & p {
+      font-size: 0.6rem;
+    }
+    &.data-right {
+      left: max(7rem, 30vw);
+      &.opened {
+        left: 0;
+      }
+    }
+    & .span-2 {
+      grid-column: span 2;
+    }
+    .numeric-data {
+      justify-self: end;
+    }
+  }
+}
+
+/* ----------------------------- */
+/* A FOOTER elemeinek beállítása */
+/* ----------------------------- */
+footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 0.2rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: stretch;
+  min-width: calc(var(--body-min-width) - 1rem);
+  height: var(--footer-height);
+  margin: 0.5rem 0.5rem 1.5rem 0.5rem;
+  z-index: 100;
+  & p {
+    font-size: 0.6rem;
+  }
+}
+
+/* ----------------------------- */
+/* A reszponzivitás beállítása   */
+/* ----------------------------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  header {
+    position: static;
+  }
+  footer {
+    position: static;
+  }
+  .aside-container {
+    height: var(--body-min-height);
+  }
+}
+@media screen and (min-width: 768px) {
+  .basic-button {
+    &.submenu {
+      font-size: 1.2rem;
+    }
+  }
+  select {
+    font-size: 1rem;
+  }
+  header {
+    grid-template-columns: var(--header-height) auto 21rem;
+    .watch-data {
+      display: none;
+    }
+  }
+  .aside-container {
+    top: calc(var(--header-height) + 0.5rem);
+    height: calc(
+      100vh - var(--header-height) - 1rem - var(--footer-height) - 2rem
+    );
+    & aside {
+      left: 0;
+      &.data-right {
+        left: 0;
+      }
+      & p {
+        font-size: 0.7rem;
+      }
+    }
+  }
+  main section.chart {
+    margin-top: calc(var(--header-height) + 1rem);
+    height: calc(
+      100vh - var(--header-height) - 1rem - var(--footer-height) - 2rem
+    );
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  :root {
+    /* Dimenziók: */
+    --header-height: 4rem;
+  }
+  .basic-button {
+    font-size: 2.3rem;
+    &.submenu {
+      font-size: 1.5rem;
+    }
+  }
+  select {
+    font-size: 1.2rem;
+  }
+  header {
+    grid-template-columns: var(--header-height) auto 25rem;
+  }
+  .aside-container aside p {
+    font-size: 1rem;
+  }
+  footer p {
+    font-size: 1rem;
+  }
+}

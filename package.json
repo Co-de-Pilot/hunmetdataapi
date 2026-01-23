@@ -1,0 +1,26 @@
+{
+  "name": "hungaromet_weather_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "got": "^14.4.4",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.10.1",
+    "morgan": "^1.10.0",
+    "node-schedule": "^2.1.1",
+    "unzipper": "^0.12.3",
+    "validator": "^13.12.0"
+  }
+}
