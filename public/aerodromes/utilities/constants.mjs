@@ -15,12 +15,7 @@ const initiateConstants = async () => {
   showLoader();
   const [aerodromes, staticSample, metSample, initialMetData] =
     await Promise.all([
-      fetchfactory(
-        "staticdatas",
-        "?stationname[regex]=repülőtér&stationname[options]=i",
-        "station",
-        [],
-      ),
+      fetchfactory("staticdatas", "aerodromes", "station", []),
       fetchfactory("constants", "staticSample", "sample", []),
       fetchfactory("constants", "metSample", "sample", []),
       fetchfactory("metdatas", "57202", "meteorological data", []),

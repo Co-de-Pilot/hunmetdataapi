@@ -5,6 +5,7 @@ import express from "express";
 import {
   getAllStaticdata,
   getSingleStaticdataBystationId,
+  getAllAerodromedata,
 } from "../controllers/staticdatacontroller.mjs";
 import { validateStationId } from "../utilities/helperfunctions.mjs";
 
@@ -17,6 +18,7 @@ const router = express.Router();
 /*SERVER ROUTING*/
 /*-------------------------------*/
 router.route("/").get(getAllStaticdata);
+router.route("/aerodromes").get(getAllAerodromedata);
 router
   .route("/:stationid")
   .get(validateStationId, getSingleStaticdataBystationId);

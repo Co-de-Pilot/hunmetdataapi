@@ -29,7 +29,7 @@ const getSingleStaticdataBystationId = catchAsync(
       Staticdata.find({
         stationId: request.params.stationid,
       }),
-      request.query
+      request.query,
     )
       .filter()
       .sort()
@@ -44,10 +44,26 @@ const getSingleStaticdataBystationId = catchAsync(
       results: staticdatas.length,
       data: { staticdatas },
     });
-  }
+  },
 );
+
+const getAllAerodromedata = catchAsync(async (request, response, next) => {
+  const staticdatas = await Staticdata.find({
+    stationname: { $regex: "repülőtér", $options: "i" },
+  });
+
+  response.status(200).json({
+    status: "success",
+    results: staticdatas.length,
+    data: { staticdatas },
+  });
+});
 
 /*-------------------------------*/
 /*MODUL EXPORT*/
 /*-------------------------------*/
-export { getAllStaticdata, getSingleStaticdataBystationId };
+export {
+  getAllStaticdata,
+  getSingleStaticdataBystationId,
+  getAllAerodromedata,
+};
