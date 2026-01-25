@@ -235,8 +235,8 @@ const serverProcess = async () => {
     console.log("------------------------------------------------------");
   }
 };
-/* serverProcess(); */
-
+/* serverProcess();
+ */
 //Ez a függvény szerverfolyamatok 10 percenkénti ütemezését végzi
 /* const scheduleRule = new schedule.RecurrenceRule();
 scheduleRule.minute = [0, 10, 20, 30, 40, 50];

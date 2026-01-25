@@ -2,6 +2,11 @@
 /* IMPORT functions                  */
 /* --------------------------------- */
 import { metSample } from "./constants.mjs";
+import {
+  estimateQNH,
+  estimateDewPoint,
+  estimateCloudBase,
+} from "./helperfunctions.mjs";
 
 /* ----------------------------- */
 /* INNER HTML'S                  */
@@ -65,7 +70,7 @@ const getLeftAsideInnerHTML = (metData, aerodrome) => {
     : "N/A";
   const estQNH =
     metData.airpressure && aerodrome.elevation
-      ? Math.round((metData.airpressure + aerodrome.elevation / 8) * 10) / 10
+      ? estimateQNH(metData.airpressure, aerodrome.elevation)
       : "N/A";
   return `
     <p title="Data time">TIME:</p><p class="span-2">${localTime
@@ -124,15 +129,17 @@ const getLeftAsideInnerHTML = (metData, aerodrome) => {
 const getRightAsideInnerHTML = (metData) => {
   const estDewPoint =
     metData.average10mintemperature && metData.relativehumidity
-      ? Math.round(
-          (metData.average10mintemperature -
-            (100 - metData.relativehumidity) / 5) *
-            10,
-        ) / 10
+      ? estimateDewPoint(
+          metData.average10mintemperature,
+          metData.relativehumidity,
+        )
       : "N/A";
   const estCloudBase =
     metData.average10mintemperature && metData.relativehumidity
-      ? (metData.average10mintemperature - estDewPoint) * 122
+      ? estimateCloudBase(
+          metData.average10mintemperature,
+          metData.relativehumidity,
+        )
       : "N/A";
   return `
   <p title="Precipitation">PCPN:</p><p class="numeric-data">${

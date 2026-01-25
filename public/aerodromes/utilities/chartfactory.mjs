@@ -9,12 +9,17 @@ import {
   arrowImage,
   chartDataSets,
 } from "./constants.mjs";
+import {
+  estimateQNH,
+  estimateDewPoint,
+  estimateCloudBase,
+} from "./helperfunctions.mjs";
 
 /* ----------------------------- */
 /* CHART global variables        */
 /* ----------------------------- */
 let chart;
-let actuaChartDataSet = "qfeqnh";
+let actualChartDataSet = "qfeqnh";
 
 /* ----------------------------- */
 /* CHART FUNCTIONS               */
@@ -24,10 +29,22 @@ const createDataSet = (key, metDataArray) => {
   return keyDataArray.reverse();
 };
 const createQNHDataSet = (dataArray, aerodromeElevation) => {
-  const qnhDataArray = dataArray.map(
-    (data) => Math.round((data + aerodromeElevation / 8) * 10) / 10,
+  const qnhDataArray = dataArray.map((data) =>
+    estimateQNH(data, aerodromeElevation),
   );
   return qnhDataArray;
+};
+const createDewPointDataSet = (dataArray, relativehumidityArray) => {
+  const dewPointDataArray = dataArray.map((data, index) =>
+    estimateDewPoint(data, relativehumidityArray[index]),
+  );
+  return dewPointDataArray;
+};
+const createCloudBaseDataSet = (dataArray, relativehumidityArray) => {
+  const cloudBaseDataArray = dataArray.map((data, index) =>
+    estimateCloudBase(data, relativehumidityArray[index]),
+  );
+  return cloudBaseDataArray;
 };
 const createTimeLabels = () => {
   let timeLabels = initialMetData.map((metData) => {
@@ -52,27 +69,43 @@ const initiateChart = () => {
 };
 
 const changeChartData = (aerodrome, actualMetData, dataSet) => {
-  if (dataSet) actuaChartDataSet = dataSet;
+  if (dataSet) actualChartDataSet = dataSet;
   if (dataSet === "qfeqnh") {
     chart.data.datasets = [
       {
         label: `QFE (${
           metSample.find(
-            (data) => data.key === chartDataSets[actuaChartDataSet][0],
+            (data) => data.key === chartDataSets[actualChartDataSet][0],
           ).unit
         })`,
-        data: createDataSet(chartDataSets[actuaChartDataSet][0], actualMetData),
+        data: createDataSet(
+          chartDataSets[actualChartDataSet][0],
+          actualMetData,
+        ),
         borderWidth: 1,
       },
       {
         label: `estimated QNH (${
           metSample.find(
-            (data) => data.key === chartDataSets[actuaChartDataSet][0],
+            (data) => data.key === chartDataSets[actualChartDataSet][0],
           ).unit
         })`,
         data: createQNHDataSet(
-          createDataSet(chartDataSets[actuaChartDataSet][0], actualMetData),
+          createDataSet(chartDataSets[actualChartDataSet][0], actualMetData),
           aerodrome.elevation,
+        ),
+        borderWidth: 1,
+      },
+    ];
+  } else if (dataSet === "cloudbase") {
+    chart.data.datasets = [
+      {
+        label: `estimated CB (${
+          metSample.find((data) => data.key === "horizontalvisibility").unit
+        })`,
+        data: createCloudBaseDataSet(
+          createDataSet("average10mintemperature", actualMetData),
+          createDataSet("relativehumidity", actualMetData),
         ),
         borderWidth: 1,
       },
@@ -80,14 +113,17 @@ const changeChartData = (aerodrome, actualMetData, dataSet) => {
   } else if (dataSet === "wind") {
     chart.data.datasets = [
       {
-        label: `${metSample.find((data) => data.key === chartDataSets[actuaChartDataSet][1]).label} (${
+        label: `${metSample.find((data) => data.key === chartDataSets[actualChartDataSet][1]).label} (${
           metSample.find(
-            (data) => data.key === chartDataSets[actuaChartDataSet][1],
+            (data) => data.key === chartDataSets[actualChartDataSet][1],
           ).unit
         })`,
-        data: createDataSet(chartDataSets[actuaChartDataSet][1], actualMetData),
+        data: createDataSet(
+          chartDataSets[actualChartDataSet][1],
+          actualMetData,
+        ),
         pointRotation: createDataSet(
-          chartDataSets[actuaChartDataSet][0],
+          chartDataSets[actualChartDataSet][0],
           actualMetData,
         ),
         pointStyle: arrowImage,
@@ -96,14 +132,17 @@ const changeChartData = (aerodrome, actualMetData, dataSet) => {
         borderWidth: 1,
       },
       {
-        label: `${metSample.find((data) => data.key === chartDataSets[actuaChartDataSet][3]).label} (${
+        label: `${metSample.find((data) => data.key === chartDataSets[actualChartDataSet][3]).label} (${
           metSample.find(
-            (data) => data.key === chartDataSets[actuaChartDataSet][3],
+            (data) => data.key === chartDataSets[actualChartDataSet][3],
           ).unit
         })`,
-        data: createDataSet(chartDataSets[actuaChartDataSet][3], actualMetData),
+        data: createDataSet(
+          chartDataSets[actualChartDataSet][3],
+          actualMetData,
+        ),
         pointRotation: createDataSet(
-          chartDataSets[actuaChartDataSet][0],
+          chartDataSets[actualChartDataSet][0],
           actualMetData,
         ),
         pointStyle: arrowImage,
@@ -114,14 +153,26 @@ const changeChartData = (aerodrome, actualMetData, dataSet) => {
     ];
   } else {
     chart.data.datasets.length = 0;
-    chartDataSets[actuaChartDataSet].map((datasetKey) => {
-      const chartDataSet = {
-        label: `${metSample.find((data) => data.key === datasetKey).label} (${
-          metSample.find((data) => data.key === datasetKey).unit
-        })`,
-        data: createDataSet(datasetKey, actualMetData),
-        borderWidth: 1,
-      };
+    chartDataSets[actualChartDataSet].map((datasetKey) => {
+      let chartDataSet;
+      if (datasetKey === "dewpoint") {
+        chartDataSet = {
+          label: `est.DP (${metSample.find((data) => data.key === "temperature").unit})`,
+          data: createDewPointDataSet(
+            createDataSet("average10mintemperature", actualMetData),
+            createDataSet("relativehumidity", actualMetData),
+          ),
+          borderWidth: 1,
+        };
+      } else {
+        chartDataSet = {
+          label: `${metSample.find((data) => data.key === datasetKey).label} (${
+            metSample.find((data) => data.key === datasetKey).unit
+          })`,
+          data: createDataSet(datasetKey, actualMetData),
+          borderWidth: 1,
+        };
+      }
       chart.data.datasets.push(chartDataSet);
     });
   }

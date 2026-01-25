@@ -47,6 +47,7 @@ arrowImage.src =
 const chartDataSets = {
   qfeqnh: ["airpressure"],
   hzvis: ["horizontalvisibility"],
+  cloudbase: [],
   relhum: ["relativehumidity"],
   wind: [
     "winddirection",
@@ -59,6 +60,7 @@ const chartDataSets = {
     "average10mintemperature",
     "minimum10mintemperature",
     "maximum10mintemperature",
+    "dewpoint",
   ],
   stemp: [
     "average10min10cmsoiltemperature",

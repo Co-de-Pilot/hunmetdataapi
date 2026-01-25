@@ -63,7 +63,6 @@ const aerodromeDataChange = async (stationId) => {
     ),
     createTileLayerLoadPromise(500),
   ]);
-  console.log("METDATAS", actualMetDatas);
   setDataAside(actualMetDatas, actualAerodrome);
   const actualDataTypeItem = document.querySelector(".chart-select.actual");
   actualDataTypeItem.classList.remove("actual");
@@ -102,7 +101,29 @@ const optionizeSelect = (element) => {
   });
 };
 
+//QNH becslést végző függvény
+const estimateQNH = (qfe, elevation) =>
+  Math.round((qfe + elevation / 8) * 10) / 10;
+
+//Dew Point becslést végző függvény
+const estimateDewPoint = (temperature, relativehumidity) =>
+  Math.round((temperature - (100 - relativehumidity) / 5) * 10) / 10;
+
+//CLOUD BASE becslést végző függvény
+const estimateCloudBase = (temperature, relativehumidity) =>
+  Math.round(
+    (temperature - estimateDewPoint(temperature, relativehumidity)) * 122,
+  );
+
 /*-------------------------------*/
 /*MODUL EXPORT                   */
 /*-------------------------------*/
-export { menuChange, aerodromeDataChange, setDataAside, optionizeSelect };
+export {
+  menuChange,
+  aerodromeDataChange,
+  setDataAside,
+  optionizeSelect,
+  estimateQNH,
+  estimateDewPoint,
+  estimateCloudBase,
+};
