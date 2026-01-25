@@ -11,7 +11,7 @@
 /* --------------------------------- */
 /* IMPORT functions                  */
 /* --------------------------------- */
-import { initialMetData } from "./utilities/constants.mjs";
+import { initialMetData, initialAerodrome } from "./utilities/constants.mjs";
 import {
   logoContainer,
   watchDataContainer,
@@ -48,7 +48,7 @@ aerodromeSelectorEventListener();
 watchDataEventListener();
 
 //DATA ASIDE beállítása
-setDataAside(initialMetData);
+setDataAside(initialMetData, initialAerodrome);
 
 //CHART beállítása
 initiateChart();

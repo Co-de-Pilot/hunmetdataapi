@@ -37,7 +37,7 @@ const getSingleStaticdataBystationId = catchAsync(
       .paginate();
     const staticdatas = await features.query;
     if (staticdatas.length === 0) {
-      return next(new AppError("No data found with that stationId!", 404));
+      return next(new AppError("❌ No data found with that stationId!", 404));
     }
     response.status(200).json({
       status: "success",

@@ -57,16 +57,25 @@ const getMapIcon = () => {
 };
 
 //LEFT DATA ASIDE innerHTML
-const getLeftAsideInnerHTML = (metData) => {
-  let localTime = new Date(metData.utcDataTime).toLocaleString("hu-HU", {
-    timeZone: "Europe/Budapest",
-  });
+const getLeftAsideInnerHTML = (metData, aerodrome) => {
+  const localTime = metData.utcDataTime
+    ? new Date(metData.utcDataTime).toLocaleString("hu-HU", {
+        timeZone: "Europe/Budapest",
+      })
+    : "N/A";
+  const estQNH =
+    metData.airpressure && aerodrome.elevation
+      ? Math.round((metData.airpressure + aerodrome.elevation / 8) * 10) / 10
+      : "N/A";
   return `
     <p title="Data time">TIME:</p><p class="span-2">${localTime
       .replace(" ", "")
       .replace(" ", "")}</p>
     <p title="Surface air pressure">QFE:</p><p class="numeric-data">${
       metData.airpressure ? metData.airpressure : "N/A"
+    }</p><p>${metSample.find((data) => data.key === "airpressure").unit}</p>
+    <p title="Main sea level air pressure">est.QNH:</p><p class="numeric-data">${
+      estQNH
     }</p><p>${metSample.find((data) => data.key === "airpressure").unit}</p>
     <p title="Horizontal visibility">HZ VIS:</p><p class="numeric-data">${
       metData.horizontalvisibility ? metData.horizontalvisibility : "N/A"
@@ -113,10 +122,27 @@ const getLeftAsideInnerHTML = (metData) => {
 
 //RIGHT DATA ASIDE innerHTML
 const getRightAsideInnerHTML = (metData) => {
+  const estDewPoint =
+    metData.average10mintemperature && metData.relativehumidity
+      ? Math.round(
+          (metData.average10mintemperature -
+            (100 - metData.relativehumidity) / 5) *
+            10,
+        ) / 10
+      : "N/A";
+  const estCloudBase =
+    metData.average10mintemperature && metData.relativehumidity
+      ? (metData.average10mintemperature - estDewPoint) * 122
+      : "N/A";
   return `
   <p title="Precipitation">PCPN:</p><p class="numeric-data">${
     metData.precipitation ? metData.precipitation : "N/A"
   }</p><p>${metSample.find((data) => data.key === "precipitation").unit}</p>
+  <p title="Cloud Base">est.CB:</p><p class="numeric-data">${
+    estCloudBase
+  }</p><p>${
+    metSample.find((data) => data.key === "horizontalvisibility").unit
+  }</p>
   <p title="Temperature">TEMP:</p><p class="numeric-data">${
     metData.temperature ? metData.temperature : "N/A"
   }</p><p>${metSample.find((data) => data.key === "temperature").unit}</p>
@@ -134,6 +160,9 @@ const getRightAsideInnerHTML = (metData) => {
       metData.maximum10mintemperature ? metData.maximum10mintemperature : "N/A"
     }</p><p>${
       metSample.find((data) => data.key === "maximum10mintemperature").unit
+    }</p>
+    <p title="Dew point">est.DP:</p><p class="numeric-data">${estDewPoint}</p><p>${
+      metSample.find((data) => data.key === "average10mintemperature").unit
     }</p>
     <p title="10cm soil temperature">10STEMP:</p><p class="numeric-data">${
       metData.average10min10cmsoiltemperature

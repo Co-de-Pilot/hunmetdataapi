@@ -9,8 +9,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import schedule from "node-schedule";
 import morgan from "morgan";
+import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import "dotenv/config";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import {
   clearDownloadsFolder,
   downloadZIP,
@@ -28,6 +31,7 @@ import {
   isNetworkError,
   isFileHandlingError,
   isFileSystemError,
+  isMongoAuthError,
 } from "./utilities/errorclassifier.mjs";
 import { serverLogging } from "./utilities/helperfunctions.mjs";
 import constantRouter from "./routes/constantroutes.mjs";
@@ -50,37 +54,93 @@ const accessLogStream = fs.createWriteStream("./logs/access.log", {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    status: "error",
+    message: "Túl sok kérés, próbáld újra később.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+let isShuttingDown = false;
+
 /*-------------------------------*/
 /*SERVER MIDDLEWARES*/
 /*-------------------------------*/
-/*server.use(express.json());*/
+//HELMET XSS védelemre
+server.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://unpkg.com",
+        ],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://*.tile.openstreetmap.org",
+          "https://tile.openstreetmap.org",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://hunmetdataapi.hu",
+          "http://localhost:3333", // Csak fejlesztéshez
+          "https://unpkg.com", // .map fájlokhoz
+          "https://cdn.jsdelivr.net", // .map fájlokhoz
+        ],
+      },
+    },
+  }),
+);
+
+//API ACCES LOG
 server.use(
   morgan(
     ':remote-addr - :remote-user [:date[iso]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-    { stream: accessLogStream }
-  )
+    { stream: accessLogStream },
+  ),
 );
+
+//NoSQL injection támadások ellen
+//Jelenleg nem szükséges, mivel nincs POST/PUT body parsing
+server.use(mongoSanitize());
+
+//Data compression middleware
+server.use(compression());
+
 // Statikus fájlok kiszolgálása a public mappából
 server.use(express.static(path.join(__dirname, "./public")));
-//Routing middlewares
 server.get("/aerodromes", (request, response) => {
   response.sendFile(path.join(__dirname, "./public/aerodromes/index.html"));
 });
+
+// Rate limiting csak az API-ra
+server.use("/api", limiter);
+
+// API routes
 server.use("/api/v1/stationdatas/constants", constantRouter);
 server.use("/api/v1/stationdatas/staticdatas", staticdataRouter);
 server.use("/api/v1/stationdatas/metdatas", metdataRouter);
 server.all("*", (request, response, next) => {
   next(new AppError(`Can't find ${request.originalUrl} on this server!`, 404));
 });
-//Data compression middleware
-server.use(compression());
+
 //Error handling middleware
 server.use(errorController);
 
 /*-------------------------------*/
 /*SERVER LISTENING*/
 /*-------------------------------*/
-server.listen(port, () => {
+const httpServer = server.listen(port, () => {
   const message = `✅ The server is listening on port ${port}.`;
   serverLogging(message);
 });
@@ -89,11 +149,18 @@ server.listen(port, () => {
 /*DATABASE CONNECTION*/
 /*-------------------------------*/
 const connectToDatabase = async () => {
-  const dbname = "metDatas";
-  await mongoose.connect(process.env.DATABASE_URL);
-  const connectionMessage = `✅ Csatlakozás sikerült a ${dbname} adatbázishoz.`;
-  serverLogging(connectionMessage);
-  return;
+  try {
+    await mongoose.connect(process.env.DATABASE_URL);
+    const dbname = mongoose.connection.name;
+    serverLogging(`✅ Connection to database ${dbname} successful.`);
+  } catch (error) {
+    if (isMongoAuthError(error)) {
+      serverLogging(`⛔ CRITICAL: IP address not allowed in MongoDB Atlas!`);
+      serverLogging(`🔃 Add current IP here: https://cloud.mongodb.com`);
+      process.exit(1); // Ne próbálkozzon újra, azonnali leállás
+    }
+    throw error; // Egyéb hibáknál retry működhet
+  }
 };
 
 await withRetry(async () => await connectToDatabase(), {
@@ -139,7 +206,7 @@ const serverProcess = async () => {
       {
         subject: "CSV file beolvasás",
         shouldRetry: (error) => isFileSystemError(error),
-      }
+      },
     );
 
     const [metDatas, staticDatas] = formatCSVDatas(rawDatas);
@@ -159,10 +226,10 @@ const serverProcess = async () => {
       shouldRetry: (error) => isFileHandlingError(error),
     });
 
-    const message = `✅ A szerver folyamat lefutott.`;
+    const message = `✅ The server process has finished.`;
     serverLogging(message);
   } catch (error) {
-    const message = `❌ Hiba a szerver folyamat során: ${error}`;
+    const message = `❌ Error during server process: ${error}`;
     serverLogging(message);
   } finally {
     console.log("------------------------------------------------------");
@@ -178,10 +245,40 @@ const job = schedule.scheduleJob(scheduleRule, () => {
   serverProcess();
 }); */
 
+const gracefulShutdown = async (signal) => {
+  if (isShuttingDown) return; // Már folyamatban van
+  isShuttingDown = true;
+  await serverLogging(`🔚 ${signal} received. Shutting down gracefully...`);
+  try {
+    await new Promise((resolve) => {
+      httpServer.close(resolve);
+    });
+    await serverLogging("❎ HTTP server closed.");
+
+    await mongoose.connection.close();
+    await serverLogging("❎ MongoDB connection closed.");
+  } catch (error) {
+    await serverLogging(`❌ Error during shutdown: ${error.message}`);
+  }
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+process.on("unhandledRejection", async (reason) => {
+  await serverLogging(`❗ Unhandled Rejection: ${reason}`);
+  gracefulShutdown("UNHANDLED_REJECTION");
+});
+
+process.on("uncaughtException", async (error) => {
+  await serverLogging(`❗ Uncaught Exception: ${error.message}`);
+  process.exit(1);
+});
 /*TODO:
-1. Frontend rész elkészítése
-2. Mértékegység átváltás
-3. Hatékony naplózás
+1. Hatékony naplózás
+2. 
+3. 
 4. 
 5. 
 6. 

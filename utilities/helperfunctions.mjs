@@ -1,8 +1,13 @@
 /*-------------------------------*/
 /*MODUL IMPORT*/
 /*-------------------------------*/
-import fs from "fs";
+import { appendFile } from "fs/promises";
 import AppError from "../utilities/apperror.mjs";
+
+/*-------------------------------*/
+/*GLOBAL VARIABLES*/
+/*-------------------------------*/
+const DATAHISTORYINHOUR = 3;
 
 /*-------------------------------*/
 /*HELPERFUNCTIONS*/
@@ -27,18 +32,18 @@ const logDateTime = () => {
 const getdeletingUtcDataTime = () => {
   const actualUtcDataTime = new Date(logDateTime());
   actualUtcDataTime.setMinutes(
-    Math.floor(actualUtcDataTime.getMinutes() / 10) * 10 - 10
+    Math.floor(actualUtcDataTime.getMinutes() / 10) * 10 - 10,
   );
   actualUtcDataTime.setSeconds(0);
   actualUtcDataTime.setMilliseconds(0);
-  return new Date(actualUtcDataTime.getTime() - 3 * 60 * 60 * 1000);
+  return new Date(
+    actualUtcDataTime.getTime() - DATAHISTORYINHOUR * 60 * 60 * 1000,
+  );
 };
 
 //A szerver naplózási fájlt szerkesztő függvény
-const serverLogging = (message) => {
-  fs.writeFileSync("./logs/server.log", `${logDateTime()} ${message}\n`, {
-    flag: "a",
-  });
+const serverLogging = async (message) => {
+  await appendFile("./logs/server.log", `${logDateTime()} ${message}\n`);
   if (process.env.NODE_ENV === "development") {
     console.log(`${logDateTime()} ${message}`);
   }

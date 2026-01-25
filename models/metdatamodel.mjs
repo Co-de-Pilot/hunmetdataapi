@@ -13,8 +13,7 @@ const metdataSchema = new mongoose.Schema(
       type: String,
       required: [true, "Metdata must have an ID."],
       validate: {
-        validator: (value) =>
-          validator.isNumeric(value, ["hu-HU"], { no_symbols: false }),
+        validator: (value) => validator.isNumeric(value, { no_symbols: false }),
         message: "Station ID must only contain numbers!",
       },
     },
@@ -46,7 +45,7 @@ const metdataSchema = new mongoose.Schema(
     average10min100cmsoiltemperature: Number,
     average10mingroundtemperature: Number,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 //Indexálás

@@ -28,7 +28,7 @@ const getAllMetdataBystationId = catchAsync(async (request, response, next) => {
     Metdata.find({
       stationId: request.params.stationid,
     }),
-    request.query
+    request.query,
   )
     .filter()
     .sort()
@@ -37,7 +37,7 @@ const getAllMetdataBystationId = catchAsync(async (request, response, next) => {
   const metdatas = await features.query;
   if (metdatas.length === 0) {
     return next(
-      new AppError("No meteorological data found with that stationId!", 404)
+      new AppError("❌ No meteorological data found with that stationId!", 404),
     );
   }
   response.status(200).json({

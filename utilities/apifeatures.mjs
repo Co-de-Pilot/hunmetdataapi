@@ -1,5 +1,15 @@
 /*-------------------------------*/
-/*APIFEATURES CLASS*/
+/* APIFEATURES CLASS */
+/*-------------------------------*/
+const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 100,
+  MAX_LIMIT: 500,
+  MAX_PAGE: 1000,
+};
+
+/*-------------------------------*/
+/* APIFEATURES CLASS */
 /*-------------------------------*/
 class APIFeatures {
   constructor(query, queryString) {
@@ -12,8 +22,8 @@ class APIFeatures {
     excludedFields.forEach((field) => delete queryObject[field]);
     let queryString = JSON.stringify(queryObject);
     queryString = queryString.replace(
-      /\b(gte|gt|lte|lt|regex|options)\b/g,
-      (match) => `$${match}`
+      /\b(gte|gt|lte|lt)\b/g,
+      (match) => `$${match}`,
     );
     this.query = this.query.find(JSON.parse(queryString));
     return this;
@@ -35,8 +45,14 @@ class APIFeatures {
     return this;
   }
   paginate() {
-    const page = Number.parseInt(this.queryString.page) || 1;
-    const limit = Number.parseInt(this.queryString.limit) || 300;
+    const page = Math.min(
+      Math.max(parseInt(this.queryString.page) || 1, 1),
+      PAGINATION.MAX_PAGE,
+    );
+    const limit = Math.min(
+      Math.max(parseInt(this.queryString.limit) || PAGINATION.DEFAULT_LIMIT, 1),
+      PAGINATION.MAX_LIMIT,
+    );
     const skip = (page - 1) * limit;
     this.query = this.query.skip(skip).limit(limit);
     return this;

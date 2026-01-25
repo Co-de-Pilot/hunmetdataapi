@@ -15,6 +15,7 @@ import {
 import { staticDataSample, metDataSample } from "./datasamples.mjs";
 import Staticdata from "../models/staticdatamodel.mjs";
 import Metdata from "../models/metdatamodel.mjs";
+import AppError from "./apperror.mjs";
 
 /*-------------------------------*/
 /*GLOBAL VARIABLES*/
@@ -33,7 +34,7 @@ const clearDownloadsFolder = async () => {
   for (const file of files) {
     await fs.promises.unlink(path.join(destinationFolder, file));
   }
-  const message = `✅ Downloads mappa kiürítve.`;
+  const message = `✅ Downloads folder has been emptied.`;
   serverLogging(message);
   return;
 };
@@ -51,7 +52,7 @@ const downloadZIP = async () => {
     fileStream.on("error", reject);
     zipDownloadStream.pipe(fileStream);
   });
-  const message = `✅ A ZIP file letöltése sikerült ide: ${zipPath}.`;
+  const message = `✅ The ZIP file was successfully downloaded here: ${zipPath}.`;
   serverLogging(message);
   return;
 };
@@ -61,7 +62,7 @@ const extractZIPtoCSV = async () => {
   await fs.promises.access(zipPath, fs.constants.F_OK);
   const directory = await unzipper.Open.file(zipPath);
   await directory.extract({ path: destinationFolder });
-  const message = `✅ A ZIP file kicsomagolása sikerült ide: ${destinationFolder}.`;
+  const message = `✅ The ZIP file was successfully extracted to: ${destinationFolder}.`;
   serverLogging(message);
   return;
 };
@@ -70,7 +71,7 @@ const extractZIPtoCSV = async () => {
 const deleteZIP = async () => {
   await fs.promises.access(zipPath, fs.constants.F_OK);
   await fs.promises.unlink(zipPath);
-  const message = `✅ Az alábbi ZIP file törlése sikerült: ${zipPath}.`;
+  const message = `✅ The following ZIP file was successfully deleted: ${zipPath}.`;
   serverLogging(message);
   return;
 };
@@ -80,12 +81,12 @@ const findCSV = async () => {
   const files = await fs.promises.readdir(destinationFolder);
   const csvFile = files.find((file) => path.extname(file) === ".csv");
   if (!csvFile) {
-    const message = `❌ Nem található CSV fájl a kicsomagolt mappában.`;
+    const message = `❌ No CSV file found in the extracted folder.`;
     serverLogging(message);
-    throw error;
+    throw new Error("❌ No CSV file found in the extracted folder.");
   }
   const csvFilePath = path.join(destinationFolder, csvFile);
-  const message = `✅ A CSV file beazonosítása sikerült: ${csvFilePath}.`;
+  const message = `✅ The CSV file was successfully identified: ${csvFilePath}.`;
   serverLogging(message);
   return csvFilePath;
 };
@@ -100,7 +101,7 @@ const readDatasFromCSV = async (csvFilePath) => {
       .on("end", () => resolve(dataRows))
       .on("error", reject);
   });
-  const message = `✅ A CSV beolvasása sikerült (${results.length} sor).`;
+  const message = `✅ CSV read succesful (${results.length} rows).`;
   serverLogging(message);
   return results;
 };
@@ -115,7 +116,7 @@ const formatCSVDatas = (rawDatas) => {
     rawDatas
       .map((station) => Object.values(station))
       .map((stationdatas) =>
-        stationdatas[0].split(";").map((item) => item.trim())
+        stationdatas[0].split(";").map((item) => item.trim()),
       )
       .map((stationdatas, index) => {
         staticDatas.push({});
@@ -126,20 +127,20 @@ const formatCSVDatas = (rawDatas) => {
           } else if (staticdataIndex === 2) {
             staticDatas[index].location = { type: "Point", coordinates: [] };
             staticDatas[index].location.coordinates.push(
-              Number(stationdatas[staticdata.stationdataindex])
+              Number(stationdatas[staticdata.stationdataindex]),
             );
           } else if (staticdataIndex === 3) {
             staticDatas[index].location.coordinates.unshift(
-              Number(stationdatas[staticdata.stationdataindex])
+              Number(stationdatas[staticdata.stationdataindex]),
             );
           } else if (staticdataIndex === 5) {
             staticDatas[index].datasAvailable = [];
             staticDatas[index].datasAvailable.push(
-              createTimeFormat(stationdatas[staticdata.stationdataindex])
+              createTimeFormat(stationdatas[staticdata.stationdataindex]),
             );
           } else {
             staticDatas[index][staticdata.key] = Number(
-              stationdatas[staticdata.stationdataindex]
+              stationdatas[staticdata.stationdataindex],
             );
           }
         });
@@ -150,20 +151,20 @@ const formatCSVDatas = (rawDatas) => {
               stationdatas[metdata.stationdataindex];
           } else if (metdataIndex === 1) {
             metDatas[index][metdata.key] = createTimeFormat(
-              stationdatas[metdata.stationdataindex]
+              stationdatas[metdata.stationdataindex],
             );
           } else if (stationdatas[metdata.stationdataindex] !== "-999") {
             metDatas[index][metdata.key] = Number(
-              stationdatas[metdata.stationdataindex]
+              stationdatas[metdata.stationdataindex],
             );
           }
         });
       });
-    const message = `✅ A CSV adatok formázása sikerült. A megformázott elemek száma:\n1. static adatok: ${staticDatas.length}.\n2. meteo adatok: ${metDatas.length}.`;
+    const message = `✅ CSV data formatting succeeded. Number of formatted elements:\n1. static data: ${staticDatas.length}.\n2. meteo data: ${metDatas.length}.`;
     serverLogging(message);
     return [metDatas, staticDatas];
   } catch (error) {
-    const message = `❌ Hiba CSV adatok formázása során: ${error}.`;
+    const message = `❌ Error formatting CSV data: ${error}.`;
     serverLogging(message);
   }
 };
@@ -179,9 +180,9 @@ const deleteFromDatabase = async () => {
       $pull: {
         datasAvailable: { $lt: getdeletingUtcDataTime() },
       },
-    }
+    },
   );
-  const message = `✅ Az adatbázisból törlés sikerült. A törölt meteo objektumok száma: ${metResult.deletedCount}, és a datasAvailable tömb frissítve ${staticResult.modifiedCount} állomásnál.`;
+  const message = `✅ The deletion from the database was successful. The number of deleted meteo objects is ${metResult.deletedCount}, and the datasAvailable array has been updated at ${staticResult.modifiedCount} stations.`;
   serverLogging(message);
   return;
 };
@@ -225,7 +226,7 @@ const insertToDatabase = async (metDatas, staticDatas) => {
   const metResult = await Metdata.bulkWrite(metOperations);
   const insertedMetDatas = metResult.upsertedCount;
   const modifiedMetDatas = metResult.modifiedCount;
-  const message = `✅ Az adatbázisba mentés sikerült az alábbiak szerint:\n1. új static adatok: ${insertedStaticDatas}.\n2. módosult static adatok: ${modifiedStaticDatas}.\n3. új meteo adatok: ${insertedMetDatas}.\n4. módosult meteo adatok: ${modifiedMetDatas}.`;
+  const message = `✅ The database was successfully saved as follows:\n1. new static data: ${insertedStaticDatas}.\n2. modified static data: ${modifiedStaticDatas}.\n3. new meteo data: ${insertedMetDatas}.\n4. modified meteo data: ${modifiedMetDatas}.`;
   serverLogging(message);
   return;
 };
@@ -234,7 +235,7 @@ const insertToDatabase = async (metDatas, staticDatas) => {
 const deleteCSV = async (csvFilePath) => {
   await fs.promises.access(csvFilePath, fs.constants.F_OK);
   await fs.promises.unlink(csvFilePath);
-  const message = `✅ A CSV file törlése sikerült: ${csvFilePath}.`;
+  const message = `✅ Successfully deleted CSV file: ${csvFilePath}.`;
   serverLogging(message);
 };
 

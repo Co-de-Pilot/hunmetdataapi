@@ -159,12 +159,17 @@ select,
   }
 }
 select {
+  width: -moz-available;
+  width: -webkit-fill-available;
   width: stretch;
   &::picker-icon {
     transition: 0.4s rotate;
   }
   &:open::picker-icon {
     rotate: 180deg;
+  }
+  & option {
+    font-size: inherit;
   }
   & option:hover,
   & option:focus {
@@ -246,6 +251,8 @@ header {
   position: fixed;
   top: 0;
   left: 0;
+  width: -moz-available;
+  width: -webkit-fill-available;
   width: stretch;
   min-width: calc(var(--body-min-width) - 1rem);
   margin: 0.5rem;
@@ -264,6 +271,8 @@ header {
     height: var(--header-height);
   }
   & nav {
+    width: -moz-available;
+    width: -webkit-fill-available;
     width: stretch;
     height: var(--header-height);
     & .menu {
@@ -418,6 +427,8 @@ footer {
   position: fixed;
   bottom: 0;
   left: 0;
+  width: -moz-available;
+  width: -webkit-fill-available;
   width: stretch;
   min-width: calc(var(--body-min-width) - 1rem);
   height: var(--footer-height);
@@ -448,7 +459,8 @@ footer {
       font-size: 1.2rem;
     }
   }
-  select {
+  select,
+  ::picker(select) {
     font-size: 1rem;
   }
   header {
@@ -491,7 +503,8 @@ footer {
       font-size: 1.5rem;
     }
   }
-  select {
+  select,
+  ::picker(select) {
     font-size: 1.2rem;
   }
   header {

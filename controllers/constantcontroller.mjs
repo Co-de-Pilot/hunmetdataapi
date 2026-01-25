@@ -19,7 +19,7 @@ const constantObject = {
 const getConstant = catchAsync(async (request, response, next) => {
   const constants = constantObject[request.params.constant];
   if (!constants) {
-    return next(new AppError("No constant found with that key!", 404));
+    return next(new AppError("❌ No constant found with that key!", 404));
   }
   response.status(200).json({
     status: "success",

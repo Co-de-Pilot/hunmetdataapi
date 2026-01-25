@@ -64,7 +64,7 @@ const aerodromeDataChange = async (stationId) => {
     createTileLayerLoadPromise(500),
   ]);
   console.log("METDATAS", actualMetDatas);
-  setDataAside(actualMetDatas);
+  setDataAside(actualMetDatas, actualAerodrome);
   const actualDataTypeItem = document.querySelector(".chart-select.actual");
   actualDataTypeItem.classList.remove("actual");
   dataTypeItems[0].classList.add("actual");
@@ -74,8 +74,11 @@ const aerodromeDataChange = async (stationId) => {
 };
 
 //DATA ASIDE feltöltését vezérlő függvény
-const setDataAside = (actualMetDatas) => {
-  leftDataContainer.innerHTML = getLeftAsideInnerHTML(actualMetDatas[0]);
+const setDataAside = (actualMetDatas, actualAerodrome) => {
+  leftDataContainer.innerHTML = getLeftAsideInnerHTML(
+    actualMetDatas[0],
+    actualAerodrome,
+  );
   rightDataContainer.innerHTML = getRightAsideInnerHTML(actualMetDatas[0]);
 };
 

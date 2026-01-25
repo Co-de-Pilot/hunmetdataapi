@@ -34,7 +34,22 @@ const isFileSystemError = (err) => {
   );
 };
 
+//MongoDB IP Acces List-ben nincs meg az API által használt IP
+const isMongoAuthError = (err) => {
+  return (
+    err.name === "MongooseServerSelectionError" ||
+    err.name === "MongoServerSelectionError" ||
+    err.message?.includes("whitelist") ||
+    err.message?.includes("IP that isn't whitelisted")
+  );
+};
+
 /*-------------------------------*/
 /* MODUL EXPORT */
 /*-------------------------------*/
-export { isNetworkError, isFileHandlingError, isFileSystemError };
+export {
+  isNetworkError,
+  isFileHandlingError,
+  isFileSystemError,
+  isMongoAuthError,
+};
