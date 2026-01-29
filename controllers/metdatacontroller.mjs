@@ -23,6 +23,34 @@ const getAllMetdata = catchAsync(async (request, response, next) => {
   });
 });
 
+const getWinddirectionByStationId = catchAsync(
+  async (request, response, next) => {
+    const result = await Metdata.findOne(
+      {
+        stationId: request.params.stationid,
+        winddirection: { $exists: true, $ne: null },
+      },
+      { winddirection: 1, stationId: 1 },
+    ).sort({ utcDataTime: -1 });
+    if (!result) {
+      return next(
+        new AppError(
+          "❌ No wind direction data found for this stationId!",
+          404,
+        ),
+      );
+    }
+    const metdatas = {
+      stationId: result.stationId,
+      winddirection: result.winddirection,
+    };
+    response.status(200).json({
+      status: "success",
+      data: { metdatas },
+    });
+  },
+);
+
 const getAllMetdataBystationId = catchAsync(async (request, response, next) => {
   const features = new APIFeatures(
     Metdata.find({
@@ -50,4 +78,4 @@ const getAllMetdataBystationId = catchAsync(async (request, response, next) => {
 /*-------------------------------*/
 /*MODUL EXPORT*/
 /*-------------------------------*/
-export { getAllMetdata, getAllMetdataBystationId };
+export { getAllMetdata, getWinddirectionByStationId, getAllMetdataBystationId };

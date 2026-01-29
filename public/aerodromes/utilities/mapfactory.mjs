@@ -1,3 +1,8 @@
+/* --------------------------------- */
+/* IMPORT functions                  */
+/* --------------------------------- */
+import fetchfactory from "./fetchfactory.mjs";
+
 /* ----------------------------- */
 /* MAP global variables          */
 /* ----------------------------- */
@@ -34,6 +39,13 @@ const openDataIcon = (stationId) => `
 	c-25.8,0-46.8,20.8-46.8,46.8s21.1,46.8,46.8,46.8s46.8-21.1,46.8-46.8S153.8,79.2,128,79.2z M144.6,119.9
 	c-5.7,0-10.4-4.7-10.4-10.4c0-5.7,4.7-10.4,10.4-10.4c5.7,0,10.4,4.7,10.4,10.4C155,115.2,150.3,119.9,144.6,119.9z"/>
 </svg>`;
+
+const windArrowIcon = (windDirection) => `
+<svg fill="#2B4570" version="1.1" id="wind-arrow" style="--wind-deg: ${windDirection}deg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	viewBox="0 0 1792 1792" xml:space="preserve">
+  <path d="M895,1792l-198.5-431l157.5,84.5V462.9l-123.6-99.3V0l165,133.2L1061.6,0v363.6l-125.6,99.3v982.3l159.5-84.5L895,1792z"/>
+</svg>
+`;
 
 const weatherStationIcon = () => {
   return L.divIcon({
@@ -120,9 +132,9 @@ const showStationsOnMap = (stations, staticSample) => {
       ${elevationIcon}<p>${station.elevation} ${
         staticSample.find((data) => data.key === "elevation").unit
       }</p>
-        ${lastDataIcon}<p>${lastDataTime}</p>
+        ${lastDataIcon}<p>${lastDataTime}</p>${windArrowIcon()}
         </div>`;
-    L.marker(
+    const marker = L.marker(
       [station.location.coordinates[1], station.location.coordinates[0]],
       {
         icon: weatherStationIcon(),
@@ -130,6 +142,18 @@ const showStationsOnMap = (stations, staticSample) => {
     )
       .addTo(actualMap)
       .bindPopup(tooltipText, { className: "basic-element-design" });
+    marker.on("popupopen", async () => {
+      const actualWinddirection = await fetchfactory(
+        "metdatas",
+        `winddirection/${station.stationId}`,
+        "winddirection",
+        [],
+      );
+      const windArrow = document.querySelector("#wind-arrow");
+      if (windArrow) {
+        windArrow.style.transform = `rotate(${actualWinddirection.winddirection}deg)`;
+      }
+    });
   });
 };
 
